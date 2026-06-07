@@ -50,12 +50,13 @@ function Library:CreateWindow(titleText)
     TopBarExtension.ZIndex = 5
     TopBarExtension.Parent = TopBar
 
-    -- Fluent Hub Icon
+    -- Lucide Hub Icon (lucide-layout-grid)
     local HubIcon = Instance.new("ImageLabel")
     HubIcon.Size = UDim2.new(0, 18, 0, 18)
     HubIcon.Position = UDim2.new(0, 10, 0.5, -9)
     HubIcon.BackgroundTransparency = 1
-    HubIcon.Image = "rbxassetid://7733920644" 
+    HubIcon.Image = "rbxassetid://10723424838" 
+    HubIcon.ImageColor3 = Color3.fromRGB(30, 30, 30)
     HubIcon.ZIndex = 6
     HubIcon.Parent = TopBar
 
@@ -72,22 +73,22 @@ function Library:CreateWindow(titleText)
     TitleLabel.ZIndex = 6
     TitleLabel.Parent = TopBar
 
-    -- Fluent Minimize Button
+    -- Lucide Minimize Button (lucide-minus)
     local MinimizeBtn = Instance.new("ImageButton")
     MinimizeBtn.Size = UDim2.new(0, 18, 0, 18)
     MinimizeBtn.Position = UDim2.new(1, -56, 0.5, -9)
     MinimizeBtn.BackgroundTransparency = 1
-    MinimizeBtn.Image = "rbxassetid://111656734345667" 
+    MinimizeBtn.Image = "rbxassetid://10734896206" 
     MinimizeBtn.ImageColor3 = Color3.fromRGB(80, 80, 80)
     MinimizeBtn.ZIndex = 6
     MinimizeBtn.Parent = TopBar
 
-    -- Fluent Close Button
+    -- Lucide Close Button (lucide-x)
     local CloseBtn = Instance.new("ImageButton")
     CloseBtn.Size = UDim2.new(0, 18, 0, 18)
     CloseBtn.Position = UDim2.new(1, -28, 0.5, -9)
     CloseBtn.BackgroundTransparency = 1
-    CloseBtn.Image = "rbxassetid://100114357931021" 
+    CloseBtn.Image = "rbxassetid://10747384394" 
     CloseBtn.ImageColor3 = Color3.fromRGB(80, 80, 80)
     CloseBtn.ZIndex = 6
     CloseBtn.Parent = TopBar
@@ -163,15 +164,15 @@ function Library:CreateWindow(titleText)
     TabBackgroundImage.Name = "TabBackgroundImage"
     TabBackgroundImage.Size = UDim2.new(1, 0, 1, 0)
     TabBackgroundImage.BackgroundTransparency = 1
-    TabBackgroundImage.ImageTransparency = 0.5 -- 50% Transparency as requested
+    TabBackgroundImage.ImageTransparency = 0.5 
     TabBackgroundImage.ScaleType = Enum.ScaleType.Crop
-    TabBackgroundImage.ZIndex = 1 -- Sits underneath all the elements perfectly
+    TabBackgroundImage.ZIndex = 1 
     TabBackgroundImage.Parent = ContentContainer
 
     local Window = {}
     local firstTab = true
 
-    -- Create Tab Function (Now accepts a 3rd parameter for custom container background!)
+    -- Create Tab Function (Now accepts a 3rd parameter for custom container background)
     function Window:CreateTab(name, tabImageId, containerBgId)
         local TabButton = Instance.new("ImageButton")
         TabButton.Size = UDim2.new(1, 0, 0, 35)
@@ -228,7 +229,6 @@ function Library:CreateWindow(titleText)
                 if child:IsA("ScrollingFrame") then child.Visible = false end
             end
             TabPage.Visible = true
-            -- Update the background image to match the selected tab!
             TabBackgroundImage.Image = "rbxthumb://type=Asset&id=" .. tostring(myBgId) .. "&w=420&h=420"
         end)
 
