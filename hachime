@@ -61,7 +61,7 @@ function Library:CreateWindow(titleText)
     MainFrame.Name = "MainFrame"
     MainFrame.Size = UDim2.new(0, 550, 0, 380)
     MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(250, 250, 250) 
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 17, 17) 
     MainFrame.BorderSizePixel = 0
     MainFrame.ClipsDescendants = true
     MainFrame.Parent = ScreenGui
@@ -74,7 +74,7 @@ function Library:CreateWindow(titleText)
     local TopBar = Instance.new("Frame")
     TopBar.Name = "TopBar"
     TopBar.Size = UDim2.new(1, 0, 0, 35)
-    TopBar.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    TopBar.BackgroundColor3 = Color3.fromRGB(15, 13, 13)
     TopBar.BorderSizePixel = 0
     TopBar.ZIndex = 5
     TopBar.Parent = MainFrame
@@ -86,7 +86,7 @@ function Library:CreateWindow(titleText)
     local TopBarExtension = Instance.new("Frame")
     TopBarExtension.Size = UDim2.new(1, 0, 0, 8)
     TopBarExtension.Position = UDim2.new(0, 0, 1, -8)
-    TopBarExtension.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    TopBarExtension.BackgroundColor3 = Color3.fromRGB(15, 13, 13)
     TopBarExtension.BorderSizePixel = 0
     TopBarExtension.ZIndex = 5
     TopBarExtension.Parent = TopBar
@@ -176,7 +176,7 @@ function Library:CreateWindow(titleText)
     Sidebar.Name = "Sidebar"
     Sidebar.Size = UDim2.new(0, 140, 1, -35)
     Sidebar.Position = UDim2.new(0, 0, 0, 35)
-    Sidebar.BackgroundColor3 = Color3.fromRGB(235, 235, 235)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(15, 13, 13)
     Sidebar.BackgroundTransparency = 0.3
     Sidebar.BorderSizePixel = 0
     Sidebar.ScrollBarThickness = 0
