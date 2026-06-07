@@ -1,0 +1,305 @@
+local Library = {}
+
+function Library:CreateWindow(titleText)
+    -- Locate where to parent the GUI (supports standard executors)
+    local targetGui = (gethui and gethui()) or game:GetService("CoreGui")
+    
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "CustomUILibrary"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Parent = targetGui
+
+    -- Main white background frame
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 550, 0, 350)
+    MainFrame.Position = UDim2.new(0.5, -275, 0.5, -175)
+    MainFrame.BackgroundColor3 = Color3.new(1, 1, 1) -- White background
+    MainFrame.BorderSizePixel = 0
+    MainFrame.ClipsDescendants = true
+    MainFrame.Parent = ScreenGui
+    MainFrame.Active = true
+    MainFrame.Draggable = true -- Allows the user to drag the UI
+
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 8)
+    UICorner.Parent = MainFrame
+
+    -- Global Image Label overlay (50% transparency)
+    local BackgroundImage = Instance.new("ImageLabel")
+    BackgroundImage.Name = "BackgroundImage"
+    BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
+    BackgroundImage.BackgroundTransparency = 1
+    BackgroundImage.Image = "rbxassetid://133161762093934"
+    BackgroundImage.ImageTransparency = 0.5
+    BackgroundImage.ZIndex = 0
+    BackgroundImage.Parent = MainFrame
+
+    -- Sidebar for Tabs (Left side)
+    local Sidebar = Instance.new("ScrollingFrame")
+    Sidebar.Name = "Sidebar"
+    Sidebar.Size = UDim2.new(0, 140, 1, 0)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    Sidebar.BackgroundTransparency = 0.2
+    Sidebar.BorderSizePixel = 0
+    Sidebar.ScrollBarThickness = 0
+    Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Sidebar.Parent = MainFrame
+
+    local SidebarLayout = Instance.new("UIListLayout")
+    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SidebarLayout.Padding = UDim.new(0, 5)
+    SidebarLayout.Parent = Sidebar
+
+    local SidebarPadding = Instance.new("UIPadding")
+    SidebarPadding.PaddingTop = UDim.new(0, 10)
+    SidebarPadding.PaddingLeft = UDim.new(0, 10)
+    SidebarPadding.PaddingRight = UDim.new(0, 10)
+    SidebarPadding.Parent = Sidebar
+
+    -- Content Container for Elements (Right side)
+    local ContentContainer = Instance.new("Frame")
+    ContentContainer.Name = "ContentContainer"
+    ContentContainer.Size = UDim2.new(1, -140, 1, 0)
+    ContentContainer.Position = UDim2.new(0, 140, 0, 0)
+    ContentContainer.BackgroundTransparency = 1
+    ContentContainer.Parent = MainFrame
+
+    local Window = {}
+    local firstTab = true
+
+    -- Function to create a Tab
+    function Window:CreateTab(name, tabImageId)
+        -- The Tab Button (with image background)
+        local TabButton = Instance.new("ImageButton")
+        TabButton.Size = UDim2.new(1, 0, 0, 35)
+        TabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        TabButton.Image = "rbxassetid://" .. tostring(tabImageId or "0")
+        TabButton.ImageTransparency = 0.5
+        TabButton.Parent = Sidebar
+
+        local TabCorner = Instance.new("UICorner")
+        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.Parent = TabButton
+
+        -- Text for the Tab Button
+        local TabLabel = Instance.new("TextLabel")
+        TabLabel.Size = UDim2.new(1, 0, 1, 0)
+        TabLabel.BackgroundTransparency = 1
+        TabLabel.Text = name
+        TabLabel.Font = Enum.Font.GothamBold
+        TabLabel.TextSize = 14
+        TabLabel.TextColor3 = Color3.fromRGB(30, 30, 30)
+        TabLabel.ZIndex = 2
+        TabLabel.Parent = TabButton
+
+        -- The Page that holds the elements
+        local TabPage = Instance.new("ScrollingFrame")
+        TabPage.Size = UDim2.new(1, 0, 1, 0)
+        TabPage.BackgroundTransparency = 1
+        TabPage.ScrollBarThickness = 4
+        TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        TabPage.Visible = firstTab
+        TabPage.Parent = ContentContainer
+
+        local PageLayout = Instance.new("UIListLayout")
+        PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        PageLayout.Padding = UDim.new(0, 8)
+        PageLayout.Parent = TabPage
+
+        local PagePadding = Instance.new("UIPadding")
+        PagePadding.PaddingTop = UDim.new(0, 15)
+        PagePadding.PaddingLeft = UDim.new(0, 15)
+        PagePadding.PaddingRight = UDim.new(0, 15)
+        PagePadding.PaddingBottom = UDim.new(0, 15)
+        PagePadding.Parent = TabPage
+
+        TabButton.MouseButton1Click:Connect(function()
+            for _, child in ipairs(ContentContainer:GetChildren()) do
+                if child:IsA("ScrollingFrame") then
+                    child.Visible = false
+                end
+            end
+            TabPage.Visible = true
+        end)
+
+        firstTab = false
+
+        local Elements = {}
+
+        -- BUTTON
+        function Elements:CreateButton(btnName, callback)
+            local Button = Instance.new("TextButton")
+            Button.Size = UDim2.new(1, 0, 0, 35)
+            Button.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            Button.Text = btnName
+            Button.Font = Enum.Font.GothamSemibold
+            Button.TextSize = 14
+            Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+            Button.Parent = TabPage
+
+            local BtnCorner = Instance.new("UICorner")
+            BtnCorner.CornerRadius = UDim.new(0, 6)
+            BtnCorner.Parent = Button
+
+            Button.MouseButton1Click:Connect(function()
+                if callback then callback() end
+            end)
+        end
+
+        -- TOGGLE
+        function Elements:CreateToggle(toggleName, defaultState, callback)
+            local state = defaultState or false
+
+            local ToggleFrame = Instance.new("Frame")
+            ToggleFrame.Size = UDim2.new(1, 0, 0, 35)
+            ToggleFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            ToggleFrame.Parent = TabPage
+
+            local ToggleCorner = Instance.new("UICorner")
+            ToggleCorner.CornerRadius = UDim.new(0, 6)
+            ToggleCorner.Parent = ToggleFrame
+
+            local ToggleLabel = Instance.new("TextLabel")
+            ToggleLabel.Size = UDim2.new(1, -50, 1, 0)
+            ToggleLabel.Position = UDim2.new(0, 10, 0, 0)
+            ToggleLabel.BackgroundTransparency = 1
+            ToggleLabel.Text = toggleName
+            ToggleLabel.Font = Enum.Font.GothamSemibold
+            ToggleLabel.TextSize = 14
+            ToggleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+            ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            ToggleLabel.Parent = ToggleFrame
+
+            local ToggleBtn = Instance.new("TextButton")
+            ToggleBtn.Size = UDim2.new(0, 30, 0, 16)
+            ToggleBtn.Position = UDim2.new(1, -40, 0.5, -8)
+            ToggleBtn.BackgroundColor3 = state and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 200, 200)
+            ToggleBtn.Text = ""
+            ToggleBtn.Parent = ToggleFrame
+
+            local BtnCorner = Instance.new("UICorner")
+            BtnCorner.CornerRadius = UDim.new(1, 0)
+            BtnCorner.Parent = ToggleBtn
+
+            local Indicator = Instance.new("Frame")
+            Indicator.Size = UDim2.new(0, 16, 0, 16)
+            Indicator.Position = state and UDim2.new(1, -16, 0, 0) or UDim2.new(0, 0, 0, 0)
+            Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            Indicator.Parent = ToggleBtn
+
+            local IndCorner = Instance.new("UICorner")
+            IndCorner.CornerRadius = UDim.new(1, 0)
+            IndCorner.Parent = Indicator
+
+            ToggleBtn.MouseButton1Click:Connect(function()
+                state = not state
+                game:GetService("TweenService"):Create(ToggleBtn, TweenInfo.new(0.2), {BackgroundColor3 = state and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 200, 200)}):Play()
+                game:GetService("TweenService"):Create(Indicator, TweenInfo.new(0.2), {Position = state and UDim2.new(1, -16, 0, 0) or UDim2.new(0, 0, 0, 0)}):Play()
+                if callback then callback(state) end
+            end)
+        end
+
+        -- TEXTBOX
+        function Elements:CreateTextbox(tbName, placeholder, callback)
+            local TBFrame = Instance.new("Frame")
+            TBFrame.Size = UDim2.new(1, 0, 0, 35)
+            TBFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            TBFrame.Parent = TabPage
+
+            local TBCorner = Instance.new("UICorner")
+            TBCorner.CornerRadius = UDim.new(0, 6)
+            TBCorner.Parent = TBFrame
+
+            local TBLabel = Instance.new("TextLabel")
+            TBLabel.Size = UDim2.new(0.5, 0, 1, 0)
+            TBLabel.Position = UDim2.new(0, 10, 0, 0)
+            TBLabel.BackgroundTransparency = 1
+            TBLabel.Text = tbName
+            TBLabel.Font = Enum.Font.GothamSemibold
+            TBLabel.TextSize = 14
+            TBLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+            TBLabel.TextXAlignment = Enum.TextXAlignment.Left
+            TBLabel.Parent = TBFrame
+
+            local TextBox = Instance.new("TextBox")
+            TextBox.Size = UDim2.new(0.5, -20, 0, 25)
+            TextBox.Position = UDim2.new(0.5, 10, 0.5, -12.5)
+            TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            TextBox.PlaceholderText = placeholder or "Type here..."
+            TextBox.Text = ""
+            TextBox.Font = Enum.Font.Gotham
+            TextBox.TextSize = 12
+            TextBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+            TextBox.Parent = TBFrame
+
+            local TxtCorner = Instance.new("UICorner")
+            TxtCorner.CornerRadius = UDim.new(0, 4)
+            TxtCorner.Parent = TextBox
+
+            TextBox.FocusLost:Connect(function(enterPressed)
+                if callback then callback(TextBox.Text) end
+            end)
+        end
+
+        -- DROPDOWN
+        function Elements:CreateDropdown(dropName, options, callback)
+            local DropFrame = Instance.new("Frame")
+            DropFrame.Size = UDim2.new(1, 0, 0, 35)
+            DropFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            DropFrame.ClipsDescendants = true
+            DropFrame.Parent = TabPage
+
+            local DropCorner = Instance.new("UICorner")
+            DropCorner.CornerRadius = UDim.new(0, 6)
+            DropCorner.Parent = DropFrame
+
+            local DropBtn = Instance.new("TextButton")
+            DropBtn.Size = UDim2.new(1, 0, 0, 35)
+            DropBtn.BackgroundTransparency = 1
+            DropBtn.Text = dropName .. " (Click to Expand)"
+            DropBtn.Font = Enum.Font.GothamSemibold
+            DropBtn.TextSize = 14
+            DropBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+            DropBtn.Parent = DropFrame
+
+            local DropList = Instance.new("UIListLayout")
+            DropList.SortOrder = Enum.SortOrder.LayoutOrder
+            DropList.Parent = DropFrame
+
+            local isOpen = false
+            DropBtn.MouseButton1Click:Connect(function()
+                isOpen = not isOpen
+                if isOpen then
+                    DropFrame.Size = UDim2.new(1, 0, 0, 35 + (#options * 30))
+                else
+                    DropFrame.Size = UDim2.new(1, 0, 0, 35)
+                end
+            end)
+
+            for _, opt in ipairs(options) do
+                local OptBtn = Instance.new("TextButton")
+                OptBtn.Size = UDim2.new(1, 0, 0, 30)
+                OptBtn.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+                OptBtn.Text = opt
+                OptBtn.Font = Enum.Font.Gotham
+                OptBtn.TextSize = 13
+                OptBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+                OptBtn.Parent = DropFrame
+
+                OptBtn.MouseButton1Click:Connect(function()
+                    DropBtn.Text = dropName .. " : " .. opt
+                    isOpen = false
+                    DropFrame.Size = UDim2.new(1, 0, 0, 35)
+                    if callback then callback(opt) end
+                end)
+            end
+        end
+
+        return Elements
+    end
+
+    return Window
+end
+
+return Library
