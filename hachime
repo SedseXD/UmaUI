@@ -1,7 +1,8 @@
 local Library = {}
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 function Library:CreateWindow(titleText)
-    -- Locate where to parent the GUI (supports standard executors)
     local targetGui = (gethui and gethui()) or game:GetService("CoreGui")
     
     local ScreenGui = Instance.new("ScreenGui")
@@ -12,38 +13,88 @@ function Library:CreateWindow(titleText)
     -- Main white background frame
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 550, 0, 350)
-    MainFrame.Position = UDim2.new(0.5, -275, 0.5, -175)
-    MainFrame.BackgroundColor3 = Color3.new(1, 1, 1) -- White background
+    MainFrame.Size = UDim2.new(0, 550, 0, 380) -- Increased height for top bar
+    MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
+    MainFrame.BackgroundColor3 = Color3.new(1, 1, 1) 
     MainFrame.BorderSizePixel = 0
     MainFrame.ClipsDescendants = true
     MainFrame.Parent = ScreenGui
-    MainFrame.Active = true
-    MainFrame.Draggable = true -- Allows the user to drag the UI
 
     local UICorner = Instance.new("UICorner")
     UICorner.CornerRadius = UDim.new(0, 8)
     UICorner.Parent = MainFrame
 
-    -- Global Image Label overlay (50% transparency)
+    -- Global Image Label overlay (using rbxthumb to bypass Decal ID issues)
     local BackgroundImage = Instance.new("ImageLabel")
     BackgroundImage.Name = "BackgroundImage"
     BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
     BackgroundImage.BackgroundTransparency = 1
-    BackgroundImage.Image = "rbxassetid://110181923533379"
+    -- 'rbxthumb' forces Decal IDs to load as images automatically
+    BackgroundImage.Image = "rbxthumb://type=Asset&id=133161762093934&w=420&h=420"
     BackgroundImage.ImageTransparency = 0.5
+    BackgroundImage.ScaleType = Enum.ScaleType.Crop
     BackgroundImage.ZIndex = 0
     BackgroundImage.Parent = MainFrame
+
+    -- Top Bar for Dragging and Title
+    local TopBar = Instance.new("Frame")
+    TopBar.Name = "TopBar"
+    TopBar.Size = UDim2.new(1, 0, 0, 30)
+    TopBar.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    TopBar.BackgroundTransparency = 0.2
+    TopBar.BorderSizePixel = 0
+    TopBar.ZIndex = 2
+    TopBar.Parent = MainFrame
+
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(1, -20, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = titleText or "Hub Name"
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextSize = 14
+    TitleLabel.TextColor3 = Color3.fromRGB(30, 30, 30)
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.ZIndex = 2
+    TitleLabel.Parent = TopBar
+
+    -- Custom Dragging Logic
+    local dragging, dragInput, dragStart, startPos
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    TopBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
 
     -- Sidebar for Tabs (Left side)
     local Sidebar = Instance.new("ScrollingFrame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 140, 1, 0)
+    Sidebar.Size = UDim2.new(0, 140, 1, -30)
+    Sidebar.Position = UDim2.new(0, 0, 0, 30)
     Sidebar.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
     Sidebar.BackgroundTransparency = 0.2
     Sidebar.BorderSizePixel = 0
     Sidebar.ScrollBarThickness = 0
     Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    Sidebar.ZIndex = 2
     Sidebar.Parent = MainFrame
 
     local SidebarLayout = Instance.new("UIListLayout")
@@ -60,29 +111,29 @@ function Library:CreateWindow(titleText)
     -- Content Container for Elements (Right side)
     local ContentContainer = Instance.new("Frame")
     ContentContainer.Name = "ContentContainer"
-    ContentContainer.Size = UDim2.new(1, -140, 1, 0)
-    ContentContainer.Position = UDim2.new(0, 140, 0, 0)
+    ContentContainer.Size = UDim2.new(1, -140, 1, -30)
+    ContentContainer.Position = UDim2.new(0, 140, 0, 30)
     ContentContainer.BackgroundTransparency = 1
+    ContentContainer.ZIndex = 2
     ContentContainer.Parent = MainFrame
 
     local Window = {}
     local firstTab = true
 
-    -- Function to create a Tab
     function Window:CreateTab(name, tabImageId)
-        -- The Tab Button (with image background)
         local TabButton = Instance.new("ImageButton")
         TabButton.Size = UDim2.new(1, 0, 0, 35)
         TabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        TabButton.Image = "rbxassetid://" .. tostring(tabImageId or "0")
+        -- Also using rbxthumb here so your custom tab decals will load properly
+        TabButton.Image = "rbxthumb://type=Asset&id=" .. tostring(tabImageId or "0") .. "&w=150&h=150"
         TabButton.ImageTransparency = 0.5
+        TabButton.ScaleType = Enum.ScaleType.Crop
         TabButton.Parent = Sidebar
 
         local TabCorner = Instance.new("UICorner")
         TabCorner.CornerRadius = UDim.new(0, 6)
         TabCorner.Parent = TabButton
 
-        -- Text for the Tab Button
         local TabLabel = Instance.new("TextLabel")
         TabLabel.Size = UDim2.new(1, 0, 1, 0)
         TabLabel.BackgroundTransparency = 1
@@ -90,10 +141,9 @@ function Library:CreateWindow(titleText)
         TabLabel.Font = Enum.Font.GothamBold
         TabLabel.TextSize = 14
         TabLabel.TextColor3 = Color3.fromRGB(30, 30, 30)
-        TabLabel.ZIndex = 2
+        TabLabel.ZIndex = 3
         TabLabel.Parent = TabButton
 
-        -- The Page that holds the elements
         local TabPage = Instance.new("ScrollingFrame")
         TabPage.Size = UDim2.new(1, 0, 1, 0)
         TabPage.BackgroundTransparency = 1
@@ -124,10 +174,8 @@ function Library:CreateWindow(titleText)
         end)
 
         firstTab = false
-
         local Elements = {}
 
-        -- BUTTON
         function Elements:CreateButton(btnName, callback)
             local Button = Instance.new("TextButton")
             Button.Size = UDim2.new(1, 0, 0, 35)
@@ -147,7 +195,6 @@ function Library:CreateWindow(titleText)
             end)
         end
 
-        -- TOGGLE
         function Elements:CreateToggle(toggleName, defaultState, callback)
             local state = defaultState or false
 
@@ -194,13 +241,12 @@ function Library:CreateWindow(titleText)
 
             ToggleBtn.MouseButton1Click:Connect(function()
                 state = not state
-                game:GetService("TweenService"):Create(ToggleBtn, TweenInfo.new(0.2), {BackgroundColor3 = state and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 200, 200)}):Play()
-                game:GetService("TweenService"):Create(Indicator, TweenInfo.new(0.2), {Position = state and UDim2.new(1, -16, 0, 0) or UDim2.new(0, 0, 0, 0)}):Play()
+                TweenService:Create(ToggleBtn, TweenInfo.new(0.2), {BackgroundColor3 = state and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 200, 200)}):Play()
+                TweenService:Create(Indicator, TweenInfo.new(0.2), {Position = state and UDim2.new(1, -16, 0, 0) or UDim2.new(0, 0, 0, 0)}):Play()
                 if callback then callback(state) end
             end)
         end
 
-        -- TEXTBOX
         function Elements:CreateTextbox(tbName, placeholder, callback)
             local TBFrame = Instance.new("Frame")
             TBFrame.Size = UDim2.new(1, 0, 0, 35)
@@ -237,12 +283,11 @@ function Library:CreateWindow(titleText)
             TxtCorner.CornerRadius = UDim.new(0, 4)
             TxtCorner.Parent = TextBox
 
-            TextBox.FocusLost:Connect(function(enterPressed)
+            TextBox.FocusLost:Connect(function()
                 if callback then callback(TextBox.Text) end
             end)
         end
 
-        -- DROPDOWN
         function Elements:CreateDropdown(dropName, options, callback)
             local DropFrame = Instance.new("Frame")
             DropFrame.Size = UDim2.new(1, 0, 0, 35)
@@ -270,11 +315,7 @@ function Library:CreateWindow(titleText)
             local isOpen = false
             DropBtn.MouseButton1Click:Connect(function()
                 isOpen = not isOpen
-                if isOpen then
-                    DropFrame.Size = UDim2.new(1, 0, 0, 35 + (#options * 30))
-                else
-                    DropFrame.Size = UDim2.new(1, 0, 0, 35)
-                end
+                DropFrame.Size = UDim2.new(1, 0, 0, isOpen and (35 + (#options * 30)) or 35)
             end)
 
             for _, opt in ipairs(options) do
