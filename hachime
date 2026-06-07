@@ -30,7 +30,7 @@ function Library:CreateWindow(titleText)
     BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
     BackgroundImage.BackgroundTransparency = 1
     -- 'rbxthumb' forces Decal IDs to load as images automatically
-    BackgroundImage.Image = "rbxthumb://type=Asset&id=133161762093934&w=420&h=420"
+    BackgroundImage.Image = "rbxthumb://type=Asset&id=110181923533379&w=420&h=420"
     BackgroundImage.ImageTransparency = 0.5
     BackgroundImage.ScaleType = Enum.ScaleType.Crop
     BackgroundImage.ZIndex = 0
