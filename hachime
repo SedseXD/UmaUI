@@ -87,7 +87,7 @@ function Library:CreateWindow(titleText)
     CloseBtn.Size = UDim2.new(0, 18, 0, 18)
     CloseBtn.Position = UDim2.new(1, -28, 0.5, -9)
     CloseBtn.BackgroundTransparency = 1
-    CloseBtn.Image = "rbxassetid://100879985468049" 
+    CloseBtn.Image = "rbxassetid://100114357931021" 
     CloseBtn.ImageColor3 = Color3.fromRGB(80, 80, 80)
     CloseBtn.ZIndex = 6
     CloseBtn.Parent = TopBar
