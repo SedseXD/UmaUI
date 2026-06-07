@@ -30,7 +30,7 @@ function Library:CreateWindow(titleText)
     BackgroundImage.Name = "BackgroundImage"
     BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
     BackgroundImage.BackgroundTransparency = 1
-    BackgroundImage.Image = "rbxassetid://133161762093934"
+    BackgroundImage.Image = "rbxassetid://110181923533379"
     BackgroundImage.ImageTransparency = 0.5
     BackgroundImage.ZIndex = 0
     BackgroundImage.Parent = MainFrame
