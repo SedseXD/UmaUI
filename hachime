@@ -5,6 +5,13 @@ local TweenService = game:GetService("TweenService")
 function Library:CreateWindow(titleText)
     local targetGui = (gethui and gethui()) or game:GetService("CoreGui")
     
+    -- Prevent duplicate UIs if you re-execute the script
+    for _, v in ipairs(targetGui:GetChildren()) do
+        if v.Name == "CustomUILibrary" then
+            v:Destroy()
+        end
+    end
+    
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "CustomUILibrary"
     ScreenGui.ResetOnSpawn = false
@@ -13,50 +20,92 @@ function Library:CreateWindow(titleText)
     -- Main white background frame
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 550, 0, 380) -- Increased height for top bar
+    MainFrame.Size = UDim2.new(0, 550, 0, 380)
     MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
-    MainFrame.BackgroundColor3 = Color3.new(1, 1, 1) 
+    MainFrame.BackgroundColor3 = Color3.fromRGB(250, 250, 250) 
     MainFrame.BorderSizePixel = 0
-    MainFrame.ClipsDescendants = true
+    MainFrame.ClipsDescendants = true -- Essential for smooth minimize
     MainFrame.Parent = ScreenGui
 
     local UICorner = Instance.new("UICorner")
     UICorner.CornerRadius = UDim.new(0, 8)
     UICorner.Parent = MainFrame
 
-    -- Global Image Label overlay (using rbxthumb to bypass Decal ID issues)
-    local BackgroundImage = Instance.new("ImageLabel")
-    BackgroundImage.Name = "BackgroundImage"
-    BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
-    BackgroundImage.BackgroundTransparency = 1
-    -- 'rbxthumb' forces Decal IDs to load as images automatically
-    BackgroundImage.Image = "rbxthumb://type=Asset&id=110181923533379&w=420&h=420"
-    BackgroundImage.ImageTransparency = 0.5
-    BackgroundImage.ScaleType = Enum.ScaleType.Crop
-    BackgroundImage.ZIndex = 0
-    BackgroundImage.Parent = MainFrame
-
-    -- Top Bar for Dragging and Title
+    -- Top Bar
     local TopBar = Instance.new("Frame")
     TopBar.Name = "TopBar"
-    TopBar.Size = UDim2.new(1, 0, 0, 30)
+    TopBar.Size = UDim2.new(1, 0, 0, 35)
     TopBar.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-    TopBar.BackgroundTransparency = 0.2
     TopBar.BorderSizePixel = 0
-    TopBar.ZIndex = 2
+    TopBar.ZIndex = 5
     TopBar.Parent = MainFrame
 
+    local TopBarCorner = Instance.new("UICorner")
+    TopBarCorner.CornerRadius = UDim.new(0, 8)
+    TopBarCorner.Parent = TopBar
+
+    -- Hide the bottom corners of the top bar to make it blend with the MainFrame
+    local TopBarExtension = Instance.new("Frame")
+    TopBarExtension.Size = UDim2.new(1, 0, 0, 8)
+    TopBarExtension.Position = UDim2.new(0, 0, 1, -8)
+    TopBarExtension.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    TopBarExtension.BorderSizePixel = 0
+    TopBarExtension.ZIndex = 5
+    TopBarExtension.Parent = TopBar
+
+    -- Fluent Hub Icon
+    local HubIcon = Instance.new("ImageLabel")
+    HubIcon.Size = UDim2.new(0, 18, 0, 18)
+    HubIcon.Position = UDim2.new(0, 10, 0.5, -9)
+    HubIcon.BackgroundTransparency = 1
+    HubIcon.Image = "rbxassetid://7733920644" -- Fluent Grid Icon
+    HubIcon.ZIndex = 6
+    HubIcon.Parent = TopBar
+
+    -- Hub Title
     local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Size = UDim2.new(1, -20, 1, 0)
-    TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+    TitleLabel.Size = UDim2.new(1, -100, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 36, 0, 0)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Text = titleText or "Hub Name"
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.TextSize = 14
     TitleLabel.TextColor3 = Color3.fromRGB(30, 30, 30)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.ZIndex = 2
+    TitleLabel.ZIndex = 6
     TitleLabel.Parent = TopBar
+
+    -- Fluent Minimize Button
+    local MinimizeBtn = Instance.new("ImageButton")
+    MinimizeBtn.Size = UDim2.new(0, 18, 0, 18)
+    MinimizeBtn.Position = UDim2.new(1, -56, 0.5, -9)
+    MinimizeBtn.BackgroundTransparency = 1
+    MinimizeBtn.Image = "rbxassetid://7733770764" -- Fluent Minus Icon
+    MinimizeBtn.ImageColor3 = Color3.fromRGB(80, 80, 80)
+    MinimizeBtn.ZIndex = 6
+    MinimizeBtn.Parent = TopBar
+
+    -- Fluent Close Button
+    local CloseBtn = Instance.new("ImageButton")
+    CloseBtn.Size = UDim2.new(0, 18, 0, 18)
+    CloseBtn.Position = UDim2.new(1, -28, 0.5, -9)
+    CloseBtn.BackgroundTransparency = 1
+    CloseBtn.Image = "rbxassetid://7733715300" -- Fluent Dismiss Icon
+    CloseBtn.ImageColor3 = Color3.fromRGB(80, 80, 80)
+    CloseBtn.ZIndex = 6
+    CloseBtn.Parent = TopBar
+
+    -- Window Controls Logic
+    local isMinimized = false
+    MinimizeBtn.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+        local targetSize = isMinimized and UDim2.new(0, 550, 0, 35) or UDim2.new(0, 550, 0, 380)
+        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+    end)
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
 
     -- Custom Dragging Logic
     local dragging, dragInput, dragStart, startPos
@@ -66,9 +115,7 @@ function Library:CreateWindow(titleText)
             dragStart = input.Position
             startPos = MainFrame.Position
             input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
             end)
         end
     end)
@@ -87,10 +134,10 @@ function Library:CreateWindow(titleText)
     -- Sidebar for Tabs (Left side)
     local Sidebar = Instance.new("ScrollingFrame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 140, 1, -30)
-    Sidebar.Position = UDim2.new(0, 0, 0, 30)
-    Sidebar.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-    Sidebar.BackgroundTransparency = 0.2
+    Sidebar.Size = UDim2.new(0, 140, 1, -35)
+    Sidebar.Position = UDim2.new(0, 0, 0, 35)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(235, 235, 235)
+    Sidebar.BackgroundTransparency = 0.3
     Sidebar.BorderSizePixel = 0
     Sidebar.ScrollBarThickness = 0
     Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -111,11 +158,23 @@ function Library:CreateWindow(titleText)
     -- Content Container for Elements (Right side)
     local ContentContainer = Instance.new("Frame")
     ContentContainer.Name = "ContentContainer"
-    ContentContainer.Size = UDim2.new(1, -140, 1, -30)
-    ContentContainer.Position = UDim2.new(0, 140, 0, 30)
+    ContentContainer.Size = UDim2.new(1, -140, 1, -35)
+    ContentContainer.Position = UDim2.new(0, 140, 0, 35)
     ContentContainer.BackgroundTransparency = 1
     ContentContainer.ZIndex = 2
     ContentContainer.Parent = MainFrame
+
+    -- THE MAIN BACKGROUND IMAGE FIX
+    -- Exclusively placed inside ContentContainer so it sits right behind the buttons/toggles
+    local TabBackgroundImage = Instance.new("ImageLabel")
+    TabBackgroundImage.Name = "TabBackgroundImage"
+    TabBackgroundImage.Size = UDim2.new(1, 0, 1, 0)
+    TabBackgroundImage.BackgroundTransparency = 1
+    TabBackgroundImage.Image = "rbxassetid://110181923533379" -- Your precise Image ID
+    TabBackgroundImage.ImageTransparency = 0.5
+    TabBackgroundImage.ScaleType = Enum.ScaleType.Crop
+    TabBackgroundImage.ZIndex = 1 -- Below the elements
+    TabBackgroundImage.Parent = ContentContainer
 
     local Window = {}
     local firstTab = true
@@ -124,10 +183,11 @@ function Library:CreateWindow(titleText)
         local TabButton = Instance.new("ImageButton")
         TabButton.Size = UDim2.new(1, 0, 0, 35)
         TabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        -- Also using rbxthumb here so your custom tab decals will load properly
-        TabButton.Image = "rbxthumb://type=Asset&id=" .. tostring(tabImageId or "0") .. "&w=150&h=150"
+        -- Support for your Tab Image IDs
+        TabButton.Image = "rbxassetid://" .. tostring(tabImageId or "0")
         TabButton.ImageTransparency = 0.5
         TabButton.ScaleType = Enum.ScaleType.Crop
+        TabButton.ZIndex = 3
         TabButton.Parent = Sidebar
 
         local TabCorner = Instance.new("UICorner")
@@ -141,15 +201,16 @@ function Library:CreateWindow(titleText)
         TabLabel.Font = Enum.Font.GothamBold
         TabLabel.TextSize = 14
         TabLabel.TextColor3 = Color3.fromRGB(30, 30, 30)
-        TabLabel.ZIndex = 3
+        TabLabel.ZIndex = 4
         TabLabel.Parent = TabButton
 
         local TabPage = Instance.new("ScrollingFrame")
         TabPage.Size = UDim2.new(1, 0, 1, 0)
         TabPage.BackgroundTransparency = 1
-        TabPage.ScrollBarThickness = 4
+        TabPage.ScrollBarThickness = 2
         TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
         TabPage.Visible = firstTab
+        TabPage.ZIndex = 2
         TabPage.Parent = ContentContainer
 
         local PageLayout = Instance.new("UIListLayout")
@@ -179,11 +240,12 @@ function Library:CreateWindow(titleText)
         function Elements:CreateButton(btnName, callback)
             local Button = Instance.new("TextButton")
             Button.Size = UDim2.new(1, 0, 0, 35)
-            Button.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            Button.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
             Button.Text = btnName
             Button.Font = Enum.Font.GothamSemibold
             Button.TextSize = 14
             Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+            Button.ZIndex = 3
             Button.Parent = TabPage
 
             local BtnCorner = Instance.new("UICorner")
@@ -200,7 +262,8 @@ function Library:CreateWindow(titleText)
 
             local ToggleFrame = Instance.new("Frame")
             ToggleFrame.Size = UDim2.new(1, 0, 0, 35)
-            ToggleFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            ToggleFrame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+            ToggleFrame.ZIndex = 3
             ToggleFrame.Parent = TabPage
 
             local ToggleCorner = Instance.new("UICorner")
@@ -216,6 +279,7 @@ function Library:CreateWindow(titleText)
             ToggleLabel.TextSize = 14
             ToggleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
             ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            ToggleLabel.ZIndex = 4
             ToggleLabel.Parent = ToggleFrame
 
             local ToggleBtn = Instance.new("TextButton")
@@ -223,6 +287,7 @@ function Library:CreateWindow(titleText)
             ToggleBtn.Position = UDim2.new(1, -40, 0.5, -8)
             ToggleBtn.BackgroundColor3 = state and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(200, 200, 200)
             ToggleBtn.Text = ""
+            ToggleBtn.ZIndex = 4
             ToggleBtn.Parent = ToggleFrame
 
             local BtnCorner = Instance.new("UICorner")
@@ -233,6 +298,7 @@ function Library:CreateWindow(titleText)
             Indicator.Size = UDim2.new(0, 16, 0, 16)
             Indicator.Position = state and UDim2.new(1, -16, 0, 0) or UDim2.new(0, 0, 0, 0)
             Indicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            Indicator.ZIndex = 5
             Indicator.Parent = ToggleBtn
 
             local IndCorner = Instance.new("UICorner")
@@ -250,7 +316,8 @@ function Library:CreateWindow(titleText)
         function Elements:CreateTextbox(tbName, placeholder, callback)
             local TBFrame = Instance.new("Frame")
             TBFrame.Size = UDim2.new(1, 0, 0, 35)
-            TBFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            TBFrame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+            TBFrame.ZIndex = 3
             TBFrame.Parent = TabPage
 
             local TBCorner = Instance.new("UICorner")
@@ -266,6 +333,7 @@ function Library:CreateWindow(titleText)
             TBLabel.TextSize = 14
             TBLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
             TBLabel.TextXAlignment = Enum.TextXAlignment.Left
+            TBLabel.ZIndex = 4
             TBLabel.Parent = TBFrame
 
             local TextBox = Instance.new("TextBox")
@@ -277,6 +345,7 @@ function Library:CreateWindow(titleText)
             TextBox.Font = Enum.Font.Gotham
             TextBox.TextSize = 12
             TextBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+            TextBox.ZIndex = 4
             TextBox.Parent = TBFrame
 
             local TxtCorner = Instance.new("UICorner")
@@ -291,8 +360,9 @@ function Library:CreateWindow(titleText)
         function Elements:CreateDropdown(dropName, options, callback)
             local DropFrame = Instance.new("Frame")
             DropFrame.Size = UDim2.new(1, 0, 0, 35)
-            DropFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            DropFrame.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
             DropFrame.ClipsDescendants = true
+            DropFrame.ZIndex = 3
             DropFrame.Parent = TabPage
 
             local DropCorner = Instance.new("UICorner")
@@ -306,6 +376,7 @@ function Library:CreateWindow(titleText)
             DropBtn.Font = Enum.Font.GothamSemibold
             DropBtn.TextSize = 14
             DropBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+            DropBtn.ZIndex = 4
             DropBtn.Parent = DropFrame
 
             local DropList = Instance.new("UIListLayout")
@@ -321,11 +392,12 @@ function Library:CreateWindow(titleText)
             for _, opt in ipairs(options) do
                 local OptBtn = Instance.new("TextButton")
                 OptBtn.Size = UDim2.new(1, 0, 0, 30)
-                OptBtn.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+                OptBtn.BackgroundColor3 = Color3.fromRGB(235, 235, 235)
                 OptBtn.Text = opt
                 OptBtn.Font = Enum.Font.Gotham
                 OptBtn.TextSize = 13
                 OptBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+                OptBtn.ZIndex = 4
                 OptBtn.Parent = DropFrame
 
                 OptBtn.MouseButton1Click:Connect(function()
