@@ -2,6 +2,47 @@ local Library = {}
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
+-- Safe Lazy-Load Lucide Icons
+local Icons
+task.spawn(function()
+    pcall(function()
+        Icons = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/Icons/main/Main-v2.lua"))()
+        if Icons then Icons.SetIconsType("lucide") end
+    end)
+end)
+
+-- Universal Icon Fetcher (Supports Asset IDs and Lucide strings)
+local function get_icon(iconName, color)
+    if not iconName then return nil end
+    local isAsset = iconName:match("^rbxassetid://") or iconName:match("^rbxthumb://") or iconName:match("^%d+$")
+    
+    if isAsset then
+        local img = Instance.new("ImageLabel")
+        img.BackgroundTransparency = 1
+        img.Image = iconName:match("^%d+$") and "rbxassetid://"..iconName or iconName
+        img.ImageColor3 = color or Color3.fromRGB(255, 255, 255)
+        return img
+    end
+    
+    local holder = Instance.new("Frame")
+    holder.BackgroundTransparency = 1
+    
+    task.spawn(function()
+        local waited = 0
+        while not Icons and waited < 5 do task.wait(0.1); waited = waited + 0.1 end
+        if Icons then
+            local iconStr = iconName:gsub("^lucide:", "")
+            local ok, iconObj = pcall(function() return Icons.Image({ Icon = iconStr, Colors = {color or Color3.fromRGB(255, 255, 255)} }) end)
+            if ok and iconObj and iconObj.IconFrame then
+                iconObj.IconFrame.BackgroundTransparency = 1
+                iconObj.IconFrame.Size = UDim2.new(1, 0, 1, 0)
+                iconObj.IconFrame.Parent = holder
+            end
+        end
+    end)
+    return holder
+end
+
 function Library:CreateWindow(titleText)
     local targetGui = (gethui and gethui()) or game:GetService("CoreGui")
     
@@ -50,15 +91,14 @@ function Library:CreateWindow(titleText)
     TopBarExtension.ZIndex = 5
     TopBarExtension.Parent = TopBar
 
-    -- Lucide Hub Icon (lucide-layout-grid)
-    local HubIcon = Instance.new("ImageLabel")
-    HubIcon.Size = UDim2.new(0, 18, 0, 18)
-    HubIcon.Position = UDim2.new(0, 10, 0.5, -9)
-    HubIcon.BackgroundTransparency = 1
-    HubIcon.Image = "rbxassetid://10723424838" 
-    HubIcon.ImageColor3 = Color3.fromRGB(30, 30, 30)
-    HubIcon.ZIndex = 6
-    HubIcon.Parent = TopBar
+    -- Lucide Hub Icon (lucide:layout-grid)
+    local HubIcon = get_icon("lucide:layout-grid", Color3.fromRGB(30, 30, 30))
+    if HubIcon then
+        HubIcon.Size = UDim2.new(0, 18, 0, 18)
+        HubIcon.Position = UDim2.new(0, 10, 0.5, -9)
+        HubIcon.ZIndex = 6
+        HubIcon.Parent = TopBar
+    end
 
     -- Hub Title
     local TitleLabel = Instance.new("TextLabel")
@@ -73,25 +113,29 @@ function Library:CreateWindow(titleText)
     TitleLabel.ZIndex = 6
     TitleLabel.Parent = TopBar
 
-    -- Lucide Minimize Button (lucide-minus)
-    local MinimizeBtn = Instance.new("ImageButton")
+    -- Lucide Minimize Button (lucide:minus)
+    local MinimizeBtn = Instance.new("TextButton")
     MinimizeBtn.Size = UDim2.new(0, 18, 0, 18)
     MinimizeBtn.Position = UDim2.new(1, -56, 0.5, -9)
     MinimizeBtn.BackgroundTransparency = 1
-    MinimizeBtn.Image = "rbxassetid://10734896206" 
-    MinimizeBtn.ImageColor3 = Color3.fromRGB(80, 80, 80)
+    MinimizeBtn.Text = ""
     MinimizeBtn.ZIndex = 6
     MinimizeBtn.Parent = TopBar
+    
+    local MinIcon = get_icon("lucide:minus", Color3.fromRGB(80, 80, 80))
+    if MinIcon then MinIcon.Size = UDim2.new(1, 0, 1, 0); MinIcon.ZIndex = 6; MinIcon.Parent = MinimizeBtn end
 
-    -- Lucide Close Button (lucide-x)
-    local CloseBtn = Instance.new("ImageButton")
+    -- Lucide Close Button (lucide:x)
+    local CloseBtn = Instance.new("TextButton")
     CloseBtn.Size = UDim2.new(0, 18, 0, 18)
     CloseBtn.Position = UDim2.new(1, -28, 0.5, -9)
     CloseBtn.BackgroundTransparency = 1
-    CloseBtn.Image = "rbxassetid://10747384394" 
-    CloseBtn.ImageColor3 = Color3.fromRGB(80, 80, 80)
+    CloseBtn.Text = ""
     CloseBtn.ZIndex = 6
     CloseBtn.Parent = TopBar
+    
+    local CloseIcon = get_icon("lucide:x", Color3.fromRGB(80, 80, 80))
+    if CloseIcon then CloseIcon.Size = UDim2.new(1, 0, 1, 0); CloseIcon.ZIndex = 6; CloseIcon.Parent = CloseBtn end
 
     -- Window Controls Logic
     local isMinimized = false
@@ -172,8 +216,8 @@ function Library:CreateWindow(titleText)
     local Window = {}
     local firstTab = true
 
-    -- Create Tab Function (Now accepts a 3rd parameter for custom container background)
-    function Window:CreateTab(name, tabImageId, containerBgId)
+    -- Create Tab Function (Now accepts a 4th parameter for Lucide Icon!)
+    function Window:CreateTab(name, tabImageId, containerBgId, tabIconString)
         local TabButton = Instance.new("ImageButton")
         TabButton.Size = UDim2.new(1, 0, 0, 35)
         TabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -187,15 +231,30 @@ function Library:CreateWindow(titleText)
         TabCorner.CornerRadius = UDim.new(0, 6)
         TabCorner.Parent = TabButton
 
+        -- If they pass a Lucide Icon, shift the text a bit to the right
+        local xOffset = tabIconString and 28 or 0
+
         local TabLabel = Instance.new("TextLabel")
-        TabLabel.Size = UDim2.new(1, 0, 1, 0)
+        TabLabel.Size = UDim2.new(1, -xOffset, 1, 0)
+        TabLabel.Position = UDim2.new(0, xOffset, 0, 0)
         TabLabel.BackgroundTransparency = 1
         TabLabel.Text = name
         TabLabel.Font = Enum.Font.GothamBold
         TabLabel.TextSize = 14
         TabLabel.TextColor3 = Color3.fromRGB(30, 30, 30)
+        TabLabel.TextXAlignment = tabIconString and Enum.TextXAlignment.Left or Enum.TextXAlignment.Center
         TabLabel.ZIndex = 4
         TabLabel.Parent = TabButton
+
+        if tabIconString then
+            local TabIcon = get_icon(tabIconString, Color3.fromRGB(30, 30, 30))
+            if TabIcon then
+                TabIcon.Size = UDim2.new(0, 16, 0, 16)
+                TabIcon.Position = UDim2.new(0, 8, 0.5, -8)
+                TabIcon.ZIndex = 4
+                TabIcon.Parent = TabButton
+            end
+        end
 
         local TabPage = Instance.new("ScrollingFrame")
         TabPage.Size = UDim2.new(1, 0, 1, 0)
@@ -217,7 +276,6 @@ function Library:CreateWindow(titleText)
         PagePadding.PaddingBottom = UDim.new(0, 15)
         PagePadding.Parent = TabPage
 
-        -- Determine the background to use
         local myBgId = containerBgId or "110181923533379"
 
         if firstTab then
